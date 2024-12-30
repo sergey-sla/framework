@@ -1,19 +1,19 @@
 {
 	"name": "mirage/framework",
 	"description": "Mirage Framework",
-
 	"authors": [
 		{
-			"name": "Vitaliy Galych",
-			"email": "galich.vitaliy@gmail.com"
+			"name": "Sergey S1nglet0n",
+			"email": "ahtixpect@gmail.com"
 		}
 	],
 	"minimum-stability": "dev",
 	"require": {
-		"php": ">=5.6",
-		"pimple/pimple": "3.2.*",
+		"php": ">=7.2",
+		"pimple/pimple": "3.5.*",
 		"gabordemooij/redbean": "5.*",
-		"smarty/smarty": "3.1.*"
+		"smarty/smarty": "5.4.*",
+		"wixel/gump": "2.*"
 	},
 	"autoload": {
 		"psr-4": {

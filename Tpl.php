@@ -2,42 +2,57 @@
 
 namespace Mirage;
 
+use \Smarty\Smarty;
+
 class Tpl {
 
-	public $smarty;
+    public Smarty $smarty;
 
-	function __construct($layout = "default") {
-		$this->init($layout);
-	}
+    function __construct($layout = "default")
+    {
+        $this->init($layout);
+    }
 
-	private function init($layout) {
+    private function init($layout): void
+    {
+        $smarty = new Smarty();
 
-		$smarty = new \Smarty();
+        $smarty->setTemplateDir(App::get('root_dir')."/template/$layout/tpl/");
+        $smarty->setCompileDir(App::get('runtime_dir')."/smarty");
+        $smarty->setCacheDir(App::get('runtime_dir')."/smarty_cache");
+        $smarty->setConfigDir(App::get('runtime_dir')."/smarty_configs");
+        $smarty->error_reporting	=  E_ALL & ~E_NOTICE;
 
-		$smarty->setTemplateDir(App::get('root_dir')."/template/$layout/tpl/");
-		//$smarty->template_dir	= App::get('root_dir')."/template/$layout/tpl/";
-		$smarty->compile_dir	= App::get('runtime_dir')."/smarty";
-		$smarty->cache_dir      = App::get('runtime_dir')."/smarty_cache";
-		$smarty->config_dir     = App::get('runtime_dir')."/smarty_configs";
-		$smarty->error_reporting	=  E_ALL & ~E_NOTICE;
-		$smarty->inheritance_merge_compiled_includes = false;
+        $smarty->muteUndefinedOrNullWarnings();
+        $smarty->addExtension(new \Mirage\Smarty\PluginsExtension());
+        //$smarty->addPluginsDir(__DIR__.'/Smarty/plugins');
 
-		$smarty->addPluginsDir(__DIR__.'/Smarty/plugins');
+        if (Config::get('web.dev')) {
+            $smarty->force_compile = true;
+            $smarty->setCaching(Smarty::CACHING_OFF);
+            $smarty->assign("dev", true);
+        } else {
+            $smarty->setCompileCheck(Smarty::COMPILECHECK_OFF);
+        }
 
-		if( Config::get('web.dev') ) {
-			$smarty->force_compile = true;
-			$smarty->assign("dev", true);
-		} else {
-			$smarty->compile_check = false;
-		}
+        $this->smarty = $smarty;
+        //$this->registerPluginsDir();
+    }
 
-		$my_security_policy = new \Smarty_Security($smarty);
-		$my_security_policy->php_modifiers = array();
-		$my_security_policy->php_functions = array('is_array','time','mb_strtolower');
-
-		$smarty->enableSecurity($my_security_policy);
-
-		$this->smarty = $smarty;
-	}
+    public function registerPluginsDir($plugins_dir = __DIR__.'/Smarty/plugins'): void
+    {
+        $plugins = glob($plugins_dir.'/*.php');
+        if (!empty($plugins)) {
+            foreach ($plugins as $plugin) {
+                require_once $plugin;
+                list($type, $fn_name) = explode('.', basename($plugin, '.php'));
+                $fn = 'smarty_'.$type.'_'.$fn_name;
+                $allowed_types = [Smarty::PLUGIN_FUNCTION, Smarty::PLUGIN_MODIFIER, Smarty::PLUGIN_BLOCK, Smarty::PLUGIN_COMPILER, Smarty::PLUGIN_MODIFIERCOMPILER];
+                if (in_array($type, $allowed_types) && is_callable($fn)) {
+                    $this->smarty->registerPlugin($type, $fn_name, $fn);
+                }
+            }
+        }
+    }
 
 }
