@@ -59,7 +59,7 @@ class Repository
 		return false;
 	}
 
-	public function remember($key, $minutes = false, \Closure $callback)
+	public function remember($key, $minutes = false, \Closure $callback = null)
 	{
 		if ( ! is_null($value = $this->get($key))) {
 
