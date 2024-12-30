@@ -13,7 +13,7 @@
 		"pimple/pimple": "3.5.*",
 		"gabordemooij/redbean": "5.*",
 		"smarty/smarty": "5.4.*",
-		"wixel/gump": "2.*"
+		"wixel/gump": "2.1.*"
 	},
 	"autoload": {
 		"psr-4": {
