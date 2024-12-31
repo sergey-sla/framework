@@ -23,7 +23,7 @@ class Odmin extends Controller
 		App::set('layout', $this->controller);
 		parent::__construct();
 
-		$this->tpl->template_dir	= App::get('root_dir')."/template/".App::get('layout')."/tpl/";
+		$this->tpl->setTemplateDir(App::get('root_dir')."/template/".App::get('layout')."/tpl/");
 		$this->tpl->assign('bmd', '/'.App::get('layout'));
 		$this->tpl->assign('site_uri', $_SERVER['REQUEST_URI']);
 		$this->tpl->assign('controller', $this->controller);
