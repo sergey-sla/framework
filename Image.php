@@ -21,7 +21,8 @@ class Image {
 	var $createFuncName;
 	var $outputFuncName;
 
-	function __construct($gFile='',$outFunc=''){
+	function __construct($gFile='',$outFunc='')
+    {
 		if ($gFile!='') $this->file = $gFile;
 
 		$this->size = getimagesize($this->file);
@@ -32,7 +33,7 @@ class Image {
 
 		$this->format = strtolower(substr($this->size['mime'], strpos($this->size['mime'], '/')+1));
 		$this->createFuncName = "imagecreatefrom" . $this->format;
-		if (!function_exists($this->createFuncName)){
+		if (!function_exists($this->createFuncName)) {
 			$this->error = 'Can\'t read image with function: '.$this->createFuncName;
 			return false;
 		}
@@ -42,26 +43,27 @@ class Image {
 		return true;
 	}
 
-	function setExtension($ext = "") {
+	function setExtension($ext = "")
+    {
 		$ext = ($ext=='jpg') ? "jpeg" : $ext;
 		$this->outputFuncName = "image" . (($ext=='') ? $this->format : $ext);
 		$this->format = ($ext=='') ? $this->format : $ext;
-		if (!function_exists($this->outputFuncName)){
+		if (!function_exists($this->outputFuncName)) {
 			$this->error = "Can't create image with function: ".$this->outputFuncName;
 			return false;
 		}
 	}
 
-	/**
-	 * Обрезает изображение помещая уменьшенную копию в заданный размер.
-	 * Оставшееся место заливает цветом.
-	 * @param $dest Путь к результату преобразования
-	 * @param $width Новая ширина
-	 * @param $height Новая высота
-	 * @param $rgb Шестнадцатиричный индекс цвета фона заливки
-	 * @return unknown_type
-	 */
-	function fillResize($dest, $width, $height)
+    /**
+     * Обрезает изображение помещая уменьшенную копию в заданный размер.
+     * Оставшееся место заливает цветом.
+     * @param string $dest Путь к результату преобразования
+     * @param int $width Новая ширина
+     * @param int $height Новая высота
+     * @param string $rgb Шестнадцатиричный индекс цвета фона заливки
+     * @return true
+     */
+	function fillResize($dest, $width, $height, $rgb = false)
 	{
 		if ($this->error!='') exit($this->error);
 		$x_ratio = $width / $this->size[0]; // масштаб по х = необходимая ширина / реальный размер по х
@@ -81,16 +83,15 @@ class Image {
 		$idest = imagecreatetruecolor($width, $height);
 
 
-		$this->transparent ? imageAlphaBlending($idest, false) : imagefill($idest, 0, 0, hexdec($this->fillColor));
+		$this->transparent ? imageAlphaBlending($idest, false) : imagefill($idest, 0, 0, hexdec($rgb ?: $this->fillColor));
 		imagecopyresampled($idest, $isrc, $new_left, $new_top, 0, 0,$new_width, $new_height, $this->size[0], $this->size[1]);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $dest, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $dest, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $dest);
+		else {
+            $f($idest, $dest);
 		}
 
 		imagedestroy($isrc);
@@ -99,15 +100,16 @@ class Image {
 		return true;
 	}
 
-	/**
-	 * Обрезает изображение сохраняя пропорции исходного файла.
-	 * (Вписывает изображение в размеры заданного блока сохраняя пропорции)
-	 * @param $dest Путь к результату преобразования
-	 * @param $width Новая ширина
-	 * @param $height Новая высота
-	 * @return unknown_type
-	 */
-	function limitBoxResize($dest, $width, $height){
+    /**
+     * Обрезает изображение сохраняя пропорции исходного файла.
+     * (Вписывает изображение в размеры заданного блока сохраняя пропорции)
+     * @param string $dest Путь к результату преобразования
+     * @param int $width Новая ширина
+     * @param int $height Новая высота
+     * @return true
+     */
+	function limitBoxResize($dest, $width, $height)
+    {
 		if ($this->error!='') exit($this->error);
 		$x_ratio = $width / $this->size[0]; // масштаб по х = необходимая ширина / реальный размер по х
 		$y_ratio = $height / $this->size[1]; // масштаб по у = необходимая высота / реальный размер по у
@@ -126,13 +128,12 @@ class Image {
 		imagecopyresampled($idest, $isrc, 0, 0, 0, 0,$new_width, $new_height, $this->size[0], $this->size[1]);
 		imageSaveAlpha($idest, true);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $dest, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $dest, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $dest);
+		else {
+            $f($idest, $dest);
 		}
 
 		imagedestroy($isrc);
@@ -141,31 +142,32 @@ class Image {
 		return true;
 	}
 
-	/**
-	 * Обрезает изображение максимально вмещая его в заданный прямоугольник
-	 * акцентируя область выделения на центр изображения
-	 * @author void
-	 * @param $dest
-	 * @param $width
-	 * @param $height
-	 * @return unknown_type
-	 */
-	function centerResize($dest, $width, $height){
+    /**
+     * Обрезает изображение максимально вмещая его в заданный прямоугольник
+     * акцентируя область выделения на центр изображения
+     * @author void
+     * @param string $dest
+     * @param int $width
+     * @param int $height
+     * @return true
+     */
+	function centerResize($dest, $width, $height)
+    {
 		if ($this->error!='') exit($this->error);
 		$a1_a=$width / $this->size[0];
 		$b1_b = $height / $this->size[1];
 
-		if($a1_a > $b1_b){
+		if ($a1_a > $b1_b) {
 			$new_width = $this->size[0];
-			$new_height = $new_width*$height/$width;
-			$left=0;
-			$top=($this->size[1]-$new_height)/2;
+			$new_height = round($new_width*$height/$width);
+			$left = 0;
+			$top = round(($this->size[1]-$new_height)/2);
 		}
-		else{
+		else {
 			$new_height = $this->size[1];
-			$new_width = $new_height*$width/$height;
-			$left=($this->size[0]-$new_width)/2;
-			$top=0;
+			$new_width = round($new_height*$width/$height);
+			$left = round(($this->size[0]-$new_width)/2);
+			$top = 0;
 		}
 
 		$f = $this->createFuncName;
@@ -177,13 +179,12 @@ class Image {
 		imagecopyresampled($idest, $isrc, 0, 0, $left, $top, $width, $height, $new_width, $new_height);
 		imageSaveAlpha($idest, true);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $dest, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $dest, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $dest);
+		else {
+            $f($idest, $dest);
 		}
 
 		imagedestroy($isrc);
@@ -193,19 +194,20 @@ class Image {
 	}
 
 
-	/**
-	 * Ресайзит картинку таким образом чтобы высота результирующей равнялась заданному значению
-	 * а ширина автоматически подогналась с сохранением пропорций оригинала
-	 *
-	 * @param $dest
-	 * @param $height
-	 * @return unknown_type
-	 */
-	function heightRestriction($dest,$height){
+    /**
+     * Ресайзит картинку таким образом, чтобы высота результирующей равнялась заданному значению,
+     * а ширина автоматически подогналась с сохранением пропорций оригинала
+     *
+     * @param string $dest
+     * @param int $height
+     * @return true
+     */
+	function heightRestriction($dest,$height)
+    {
 		if ($this->error!='') exit($this->error);
 
-		$new_height  = $height; // новая высота = высоте установленной юзером
-		$new_width = $this->size[0]*$new_height/$this->size[1]; // расчитываем новую ширину с сохранением пропорций
+		$new_height = $height; // новая высота = высоте установленной юзером
+		$new_width = round($this->size[0]*$new_height/$this->size[1]); // расчитываем новую ширину с сохранением пропорций
 
 		$f = $this->createFuncName;
 		$isrc = $f($this->file);
@@ -215,13 +217,12 @@ class Image {
 		imagecopyresampled($idest, $isrc, 0, 0, 0, 0,$new_width, $new_height, $this->size[0], $this->size[1]);
 		imageSaveAlpha($idest, true);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $dest, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $dest, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $dest);
+		else {
+            $f($idest, $dest);
 		}
 
 		imagedestroy($isrc);
@@ -231,19 +232,21 @@ class Image {
 	}
 
 
-	/**
-	 * Ресайзит картинку таким образом чтобы ширина результирующей равнялась заданному значению
-	 * а высота автоматически подогналась с сохранением пропорций оригинала
-	 *
-	 * @param $dest
-	 * @param $width
-	 * @return unknown_type
-	 */
-	function widthRestriction($dest,$width,$limit_to_original_width = false){
+    /**
+     * Ресайзит картинку таким образом, чтобы ширина результирующей равнялась заданному значению,
+     * а высота автоматически подогналась с сохранением пропорций оригинала
+     *
+     * @param string $dest
+     * @param int $width
+     * @param bool $limit_to_original_width
+     * @return true
+     */
+	function widthRestriction($dest,$width,$limit_to_original_width = false)
+    {
 		if ($this->error!='') exit($this->error);
 
 		$new_width = ($limit_to_original_width && $width > $this->size[0]) ? $this->size[0] : $width;// новая ширина = ширине установленной юзером
-		$new_height = $this->size[1]*$new_width/$this->size[0]; // расчитываем новую высоту с сохранением пропорций
+		$new_height = round($this->size[1]*$new_width/$this->size[0]); // расчитываем новую высоту с сохранением пропорций
 
 		$f = $this->createFuncName;
 		$isrc = $f($this->file);
@@ -253,13 +256,12 @@ class Image {
 		imagecopyresampled($idest, $isrc, 0, 0, 0, 0,$new_width, $new_height, $this->size[0], $this->size[1]);
 		imageSaveAlpha($idest, true);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $dest, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $dest, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $dest);
+		else {
+            $f($idest, $dest);
 		}
 
 		imagedestroy($isrc);
@@ -268,7 +270,8 @@ class Image {
 		return true;
 	}
 
-	function waterMark($original, $watermark = 'watermark.png', $placement = 'bottom=10,right=10', $padding = 0) {
+	function waterMark($original, $watermark = 'watermark.png', $placement = 'bottom=10,right=10', $padding = 0)
+    {
 		$info_o = @getImageSize($original);
 		if (!$info_o)
 			return false;
@@ -277,7 +280,7 @@ class Image {
 			return false;
 
 		$watermark_width = $info_o[0] < $info_w[0] ? $info_o[0] - $padding : $info_w[0] ;// новая ширина вотермарка = если источник меньше чем вотермарк, уменьшаем вотермарк до ширины источника
-		$watermark_height = $info_w[1]*$watermark_width/$info_w[0]; // расчитываем новую высоту с сохранением пропорций
+		$watermark_height = round($info_w[1]*$watermark_width/$info_w[0]); // расчитываем новую высоту с сохранением пропорций
 
 		$iWatermark = @imageCreateFromString(file_get_contents($watermark));
 
@@ -314,7 +317,6 @@ class Image {
 				break;
 		}
 
-		$f = $this->createFuncName;
 		$idest = imagecreatetruecolor($info_o[0], $info_o[1]);
 
 		$iOriginal = @imageCreateFromString(file_get_contents($original));
@@ -325,13 +327,12 @@ class Image {
 		imageCopy($idest, $iOriginal, 0, 0, 0, 0, $info_o[0], $info_o[1]);
 		imageCopy($idest, $watermark_resized, $x, $y, 0, 0, $watermark_width, $watermark_height);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $original, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $original, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $original);
+		else {
+            $f($idest, $original);
 		}
 
 		imagedestroy($iOriginal);
@@ -341,22 +342,23 @@ class Image {
 		return true;
 	}
 
-	function blur($dest, $width, $height) {
+	function blur($dest, $width, $height)
+    {
 		if ($this->error!='') exit($this->error);
 		$a1_a=$width / $this->size[0];
 		$b1_b = $height / $this->size[1];
 
-		if($a1_a > $b1_b){
+		if ($a1_a > $b1_b){
 			$new_width = $this->size[0];
-			$new_height = $new_width*$height/$width;
-			$left=0;
-			$top=($this->size[1]-$new_height)/2;
+			$new_height = round($new_width*$height/$width);
+			$left = 0;
+			$top = round(($this->size[1]-$new_height)/2);
 		}
-		else{
+		else {
 			$new_height = $this->size[1];
-			$new_width = $new_height*$width/$height;
-			$left=($this->size[0]-$new_width)/2;
-			$top=0;
+			$new_width = round($new_height*$width/$height);
+			$left = round(($this->size[0]-$new_width)/2);
+			$top = 0;
 		}
 
 		$f = $this->createFuncName;
@@ -373,13 +375,12 @@ class Image {
 		imagefilter($idest, IMG_FILTER_SMOOTH, 0);
 		imagefilter($idest, IMG_FILTER_GAUSSIAN_BLUR);
 
-		if ($this->format == 'jpeg'){
-			$f = $this->outputFuncName;
-			$f($idest, $dest, $this->outputQuality);
+        $f = $this->outputFuncName;
+        if ($this->format == 'jpeg') {
+            $f($idest, $dest, $this->outputQuality);
 		}
-		else{
-			$f = $this->outputFuncName;
-			$f($idest, $dest);
+		else {
+            $f($idest, $dest);
 		}
 
 		imagedestroy($isrc);
