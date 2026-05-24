@@ -10,7 +10,7 @@ class PluginsExtension extends Base {
     public function getModifierCallback(string $modifierName)
     {
         switch ($modifierName) {
-            case 'declension': return [$this, 'smarty_modifier_decl'];
+            case 'decl': return [$this, 'smarty_modifier_decl'];
             case 'format_phone': return [$this, 'smarty_modifier_format_phone'];
             case 'has_role': return [$this, 'smarty_modifier_has_role'];
             case 't': return [$this, 'smarty_modifier_t'];
