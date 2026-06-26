@@ -10,10 +10,10 @@
 	"minimum-stability": "dev",
 	"require": {
 		"php": ">=7.2",
-		"pimple/pimple": "3.5.*",
+		"pimple/pimple": "3.6.*",
 		"gabordemooij/redbean": "5.*",
-		"smarty/smarty": "5.4.*",
-		"wixel/gump": "2.1.*"
+		"smarty/smarty": "5.8.*",
+		"wixel/gump": "2.3.*"
 	},
 	"autoload": {
 		"psr-4": {
